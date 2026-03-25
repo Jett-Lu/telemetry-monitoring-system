@@ -1,4 +1,4 @@
-from models.device import Device
+from models.device_factory import DeviceFactory
 
 
 class DeviceService:
@@ -10,7 +10,12 @@ class DeviceService:
         if existing_device is not None:
             raise ValueError(f"Device '{device_id}' is already registered.")
 
-        device = Device(device_id, name, device_type, location)
+        device = DeviceFactory.create_device(
+            device_id=device_id,
+            name=name,
+            device_type=device_type,
+            location=location,
+        )
         return self.device_repository.insert(device)
 
     def get_device(self, device_id):

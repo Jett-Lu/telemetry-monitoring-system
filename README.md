@@ -1,76 +1,171 @@
 # SentinelLog
 
-CLI-based telemetry logging system demonstrating layered architecture, cloud PostgreSQL integration, and 4+1 architectural documentation.
+SentinelLog is a CLI-based telemetry logging and reporting system for SFWRTECH 4SA3. It demonstrates a layered software architecture with PostgreSQL persistence, timestamped database logging, filtered telemetry retrieval, and external website performance enrichment using the Chrome UX Report (CrUX) API for `https://www.mcmaster.ca/`.
 
-## Updated file structure
+## Final Milestone 4 scope
+
+SentinelLog supports:
+- device registration with `device_id`, `name`, `type`, and `location`
+- telemetry logging with `device_id`, `metric_type`, `metric_value`, and `timestamp`
+- PostgreSQL storage for devices and telemetry records
+- telemetry history retrieval filtered by `device_id` and optional date range
+- text-based summary report generation
+- external performance enrichment from CrUX for the tracked McMaster origin
+
+## Architecture
+
+The project uses a layered structure:
 
 ```text
-sentinellog/
+sentinel-log/
 ├── api/
-│   └── openweather_client.py
+│   ├── crux_adapter.py
+│   └── crux_client.py
 ├── cli/
-│   └── main.py
+│   ├── main.py
+│   └── telemetry_cli.py
+├── config/
+│   └── environment.py
 ├── database/
 │   └── db_connection.py
 ├── models/
 │   ├── device.py
+│   ├── device_factory.py
+│   ├── site_performance.py
 │   └── telemetry.py
 ├── repositories/
+│   ├── device_repository.py
 │   └── telemetry_repository.py
+├── scripts/
+│   └── system_check.py
 ├── services/
-│   ├── telemetry_service.py
-│   └── weather_service.py
-├── weather_test.py
+│   ├── device_service.py
+│   ├── report_service.py
+│   ├── report_strategies.py
+│   └── telemetry_service.py
 ├── requirements.txt
 └── README.md
 ```
 
-## Install
+## Design patterns used
+
+- Factory Method:
+  `models/device_factory.py` creates `Device` objects for the service layer.
+- Strategy:
+  `services/report_strategies.py` defines the report formatting strategy, with `PlainTextReportStrategy` used by default.
+- Adapter:
+  `api/crux_adapter.py` converts raw CrUX API responses into the internal site performance model used by reporting.
+
+## Requirements
+
+- Python 3.11+ recommended
+- PostgreSQL database reachable through a cloud connection string
+
+Install dependencies:
 
 ```powershell
-py -m pip install -r requirements.txt
+python -m pip install -r requirements.txt
 ```
 
-## Required environment variable
+## Configuration
 
-Set your Neon/PostgreSQL connection string:
+Create a `.env` file in the project root:
 
-```powershell
-$env:DATABASE_URL = "your_postgresql_connection_string"
+```env
+DATABASE_URL=your_postgresql_connection_string
+CRUX_API_KEY=your_google_crux_api_key
+TRACKED_ORIGIN=https://www.mcmaster.ca/
 ```
 
-Optional override for the weather API key:
+Required variables:
+- `DATABASE_URL`
+- `CRUX_API_KEY`
 
-```powershell
-$env:OPENWEATHER_API_KEY = "your_openweather_api_key"
-```
+Optional variable:
+- `TRACKED_ORIGIN`
+  Default: `https://www.mcmaster.ca/`
 
-## Run the full CLI app
+If a required variable is missing, SentinelLog prints a clear startup configuration error and exits immediately.
+
+You can start from `.env.example` and fill in the real values.
+
+## Running the application
 
 From the project root:
 
 ```powershell
 $env:PYTHONPATH="."
-py cli/main.py
+python cli/main.py
 ```
 
-## Test the weather API only
+## CLI options
+
+The final CLI supports:
+
+1. Register device
+2. List devices
+3. Log telemetry
+4. Retrieve telemetry history
+5. Generate report
+6. Exit
+
+## Example flow
+
+1. Register a device with `device_id`, `name`, `type`, and `location`
+2. Log telemetry for that registered device
+3. Retrieve telemetry history using:
+   - no filters
+   - a `device_id`
+   - a `device_id` plus optional ISO-format start and end dates
+4. Generate a report that summarizes telemetry and adds CrUX performance data for the tracked origin
+
+## Report output
+
+The report is plain text and includes:
+- telemetry summary by `device_id` and `metric_type`
+- average, minimum, maximum, and sample count
+- CrUX performance data for the tracked origin:
+  - LCP
+  - TTFB
+  - FCP
+  - CLS
+
+## Logging
+
+Database operations and failures are logged with timestamps to:
+
+```text
+sentinel.log
+```
+
+Logged events include:
+- device inserts, updates, and deletes
+- telemetry inserts
+- repository/database failures
+- connection failures
+
+## Validation script
+
+Run the system validation script before submission:
 
 ```powershell
 $env:PYTHONPATH="."
-py weather_test.py
+python scripts/system_check.py
 ```
 
-## What to expect
+The script checks:
+- environment variables
+- database connection
+- `devices` table existence
+- `telemetry` table existence
+- CrUX API connectivity
+- logging initialization
+- report generation pipeline
 
-### CLI app
-1. Choose `1` to log telemetry
-2. Enter device id, metric type, and metric value
-3. Choose `2` to view the report
+It prints `PASS` or `FAIL` for each check and ends with a summary count.
 
-The report prints:
-- telemetry rows from PostgreSQL
-- weather data from OpenWeatherMap
+## Notes for submission
 
-### Weather test
-Prints temperature, humidity, and description for Toronto.
+- SentinelLog uses one final external integration path: CrUX.
+- Older weather-based and duplicate external integration code has been removed to keep the final prototype coherent.
+- The repository is structured so CLI, service logic, persistence, configuration, models, and external integrations are clearly separated.

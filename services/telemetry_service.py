@@ -23,12 +23,19 @@ class TelemetryService:
 
         parsed_start = self._parse_timestamp(start_date) if start_date else None
         parsed_end = self._parse_timestamp(end_date) if end_date else None
-        telemetry_rows = self.telemetry_repository.get_all(
+        telemetry_rows = self.telemetry_repository.get_history(
             device_id=device_id,
             start_date=parsed_start,
             end_date=parsed_end,
         )
         return telemetry_rows
+
+    def retrieve_history(self, device_id=None, start_date=None, end_date=None):
+        return self.get_telemetry_data(
+            device_id=device_id,
+            start_date=start_date,
+            end_date=end_date,
+        )
 
     def _parse_timestamp(self, value):
         if isinstance(value, datetime):

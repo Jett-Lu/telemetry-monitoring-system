@@ -65,6 +65,12 @@ class TelemetryRepository:
                 END $$;
                 """
             )
+            cur.execute(
+                """
+                CREATE INDEX IF NOT EXISTS idx_telemetry_device_id_timestamp
+                ON telemetry (device_id, timestamp)
+                """
+            )
             self.conn.commit()
         except Exception:
             self.conn.rollback()
@@ -102,7 +108,7 @@ class TelemetryRepository:
         finally:
             cur.close()
 
-    def get_all(self, device_id=None, start_date=None, end_date=None):
+    def get_history(self, device_id=None, start_date=None, end_date=None):
         cur = self.conn.cursor()
         query = """
             SELECT device_id, metric_type, metric_value, timestamp
@@ -136,3 +142,10 @@ class TelemetryRepository:
         finally:
             cur.close()
         return [Telemetry.from_row(row).to_dict() for row in rows]
+
+    def get_all(self, device_id=None, start_date=None, end_date=None):
+        return self.get_history(
+            device_id=device_id,
+            start_date=start_date,
+            end_date=end_date,
+        )

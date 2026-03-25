@@ -30,6 +30,20 @@ class TelemetryCLI:
 
         print("Device registered.")
 
+    def list_devices(self):
+        devices = self.device_service.list_devices()
+
+        if not devices:
+            print("No devices registered.")
+            return
+
+        print("\nRegistered Devices:")
+        for device in devices:
+            print(
+                f"- {device.device_id} | {device.name} | "
+                f"{device.device_type} | {device.location}"
+            )
+
     def prompt_telemetry_logging(self):
         device_id = input("Device ID: ").strip()
         metric_type = input("Metric type: ").strip()
@@ -55,6 +69,36 @@ class TelemetryCLI:
             return
 
         print("Telemetry saved.")
+
+    def prompt_telemetry_history(self):
+        device_id = input("Filter by Device ID (optional): ").strip() or None
+        start_date = input(
+            "Start date (optional, ISO format like 2026-03-25 00:00:00): "
+        ).strip() or None
+        end_date = input(
+            "End date (optional, ISO format like 2026-03-25 23:59:59): "
+        ).strip() or None
+
+        try:
+            rows = self.telemetry_service.retrieve_history(
+                device_id=device_id,
+                start_date=start_date,
+                end_date=end_date,
+            )
+        except ValueError as exc:
+            print(exc)
+            return
+
+        if not rows:
+            print("No telemetry records found for the selected filters.")
+            return
+
+        print("\nTelemetry History:")
+        for row in rows:
+            print(
+                f"- {row['timestamp']} | {row['device_id']} | "
+                f"{row['metric_type']} = {row['metric_value']}"
+            )
 
     def prompt_report(self):
         report_device_id = input("Filter by Device ID (optional): ").strip() or None
