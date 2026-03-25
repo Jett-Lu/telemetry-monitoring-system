@@ -30,6 +30,9 @@ def main():
         elif choice == "2":
             device_id = input("Device ID: ").strip()
             metric_type = input("Metric type: ").strip()
+            timestamp = input(
+                "Timestamp (optional, ISO format like 2026-03-25 14:30:00): "
+            ).strip()
 
             try:
                 metric_value = float(input("Metric value: ").strip())
@@ -38,7 +41,12 @@ def main():
                 continue
 
             try:
-                telemetry_service.log_telemetry(device_id, metric_type, metric_value)
+                telemetry_service.log_telemetry(
+                    device_id,
+                    metric_type,
+                    metric_value,
+                    timestamp=timestamp or None,
+                )
             except ValueError as exc:
                 print(exc)
                 continue
@@ -46,7 +54,24 @@ def main():
             print("Telemetry saved.")
 
         elif choice == "3":
-            report = telemetry_service.generate_report()
+            report_device_id = input("Filter by Device ID (optional): ").strip() or None
+            start_date = input(
+                "Start date (optional, ISO format like 2026-03-25 00:00:00): "
+            ).strip() or None
+            end_date = input(
+                "End date (optional, ISO format like 2026-03-25 23:59:59): "
+            ).strip() or None
+
+            try:
+                report = telemetry_service.generate_report(
+                    device_id=report_device_id,
+                    start_date=start_date,
+                    end_date=end_date,
+                )
+            except ValueError as exc:
+                print(exc)
+                continue
+
             print("\nTelemetry Records:")
             for row in report["telemetry"]:
                 print(row)
