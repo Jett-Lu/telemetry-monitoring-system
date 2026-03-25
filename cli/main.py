@@ -1,4 +1,5 @@
 from database.db_connection import get_connection
+from cli.telemetry_cli import TelemetryCLI
 from models.device import Device
 from repositories.telemetry_repository import TelemetryRepository
 from services.weather_service import WeatherService
@@ -12,6 +13,7 @@ def main():
 
     weather_service = WeatherService()
     telemetry_service = TelemetryService(repo, weather_service, Device)
+    telemetry_cli = TelemetryCLI(telemetry_service)
 
     while True:
         print("\nSentinelLog CLI")
@@ -23,21 +25,7 @@ def main():
         choice = input("> ").strip()
 
         if choice == "1":
-            device_id = input("Device ID: ").strip()
-            name = input("Device name: ").strip()
-            device_type = input("Device type: ").strip()
-            location = input("Device location: ").strip()
-
-            device = Device(device_id, name, device_type, location)
-
-            try:
-                device.create(conn)
-            except Exception as exc:
-                conn.rollback()
-                print(f"Unable to register device: {exc}")
-                continue
-
-            print("Device registered.")
+            telemetry_cli.prompt_device_registration()
 
         elif choice == "2":
             device_id = input("Device ID: ").strip()
