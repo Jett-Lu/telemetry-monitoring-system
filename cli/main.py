@@ -1,4 +1,4 @@
-from database.db_connection import get_connection
+from database.db_connection import configure_logging, get_connection
 from cli.telemetry_cli import TelemetryCLI
 from models.device import Device
 from repositories.telemetry_repository import TelemetryRepository
@@ -7,6 +7,7 @@ from services.weather_service import WeatherService
 from services.telemetry_service import TelemetryService
 
 def main():
+    configure_logging()
     conn = get_connection()
     Device.create_table(conn)
     repo = TelemetryRepository(conn)
