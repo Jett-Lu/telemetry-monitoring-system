@@ -1,25 +1,45 @@
 from database.db_connection import get_connection
+from models.device import Device
 from repositories.telemetry_repository import TelemetryRepository
 from services.weather_service import WeatherService
 from services.telemetry_service import TelemetryService
 
 def main():
     conn = get_connection()
+    Device.create_table(conn)
     repo = TelemetryRepository(conn)
     repo.create_table()
 
     weather_service = WeatherService()
-    telemetry_service = TelemetryService(repo, weather_service)
+    telemetry_service = TelemetryService(repo, weather_service, Device)
 
     while True:
         print("\nSentinelLog CLI")
-        print("1. Log telemetry")
-        print("2. View report")
-        print("3. Exit")
+        print("1. Register device")
+        print("2. Log telemetry")
+        print("3. View report")
+        print("4. Exit")
 
         choice = input("> ").strip()
 
         if choice == "1":
+            device_id = input("Device ID: ").strip()
+            name = input("Device name: ").strip()
+            device_type = input("Device type: ").strip()
+            location = input("Device location: ").strip()
+
+            device = Device(device_id, name, device_type, location)
+
+            try:
+                device.create(conn)
+            except Exception as exc:
+                conn.rollback()
+                print(f"Unable to register device: {exc}")
+                continue
+
+            print("Device registered.")
+
+        elif choice == "2":
             device_id = input("Device ID: ").strip()
             metric_type = input("Metric type: ").strip()
 
@@ -29,10 +49,15 @@ def main():
                 print("Metric value must be a number.")
                 continue
 
-            telemetry_service.log_telemetry(device_id, metric_type, metric_value)
+            try:
+                telemetry_service.log_telemetry(device_id, metric_type, metric_value)
+            except ValueError as exc:
+                print(exc)
+                continue
+
             print("Telemetry saved.")
 
-        elif choice == "2":
+        elif choice == "3":
             report = telemetry_service.generate_report()
             print("\nTelemetry Records:")
             for row in report["telemetry"]:
@@ -41,13 +66,13 @@ def main():
             print("\nWeather Context:")
             print(report["weather"])
 
-        elif choice == "3":
+        elif choice == "4":
             print("Exiting SentinelLog.")
             conn.close()
             break
 
         else:
-            print("Invalid option. Please choose 1, 2, or 3.")
+            print("Invalid option. Please choose 1, 2, 3, or 4.")
 
 if __name__ == "__main__":
     main()
