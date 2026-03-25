@@ -32,6 +32,7 @@ class CrUXAdapter:
         percentile = payload.get("percentiles", {}).get("p75")
         if percentile is None:
             percentile = payload.get("percentiles", {}).get("P75")
+        percentile = self._coerce_number(percentile)
 
         return {
             "name": metric_name,
@@ -58,3 +59,16 @@ class CrUXAdapter:
         if value <= poor:
             return "needs_improvement"
         return "poor"
+
+    def _coerce_number(self, value):
+        if value is None:
+            return None
+
+        if isinstance(value, (int, float)):
+            return value
+
+        text = str(value).strip()
+        if not text:
+            return None
+
+        return float(text)

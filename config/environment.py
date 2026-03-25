@@ -10,7 +10,7 @@ REQUIRED_ENV_VARS = [
 DEFAULT_TRACKED_ORIGIN = "https://www.mcmaster.ca/"
 
 
-def load_env_file(env_file_path=ENV_FILE_PATH):
+def load_env_file(env_file_path=ENV_FILE_PATH, override=True):
     if not os.path.exists(env_file_path):
         return
 
@@ -25,7 +25,7 @@ def load_env_file(env_file_path=ENV_FILE_PATH):
             key = key.strip()
             value = value.strip().strip('"').strip("'")
 
-            if key and key not in os.environ:
+            if key and (override or key not in os.environ):
                 os.environ[key] = value
 
 

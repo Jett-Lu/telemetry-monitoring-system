@@ -53,6 +53,12 @@ class TelemetryRepository:
                 """
                 DO $$
                 BEGIN
+                    INSERT INTO devices (device_id, name, type, location)
+                    SELECT DISTINCT t.device_id, t.device_id, 'legacy-device', 'unknown'
+                    FROM telemetry t
+                    LEFT JOIN devices d ON d.device_id = t.device_id
+                    WHERE d.device_id IS NULL;
+
                     IF NOT EXISTS (
                         SELECT 1
                         FROM pg_constraint

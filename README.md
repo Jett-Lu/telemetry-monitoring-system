@@ -164,6 +164,22 @@ The script checks:
 
 It prints `PASS` or `FAIL` for each check and ends with a summary count.
 
+## Unit tests
+
+Run the lightweight service-level tests:
+
+```powershell
+$env:PYTHONPATH="."
+python -m unittest tests.test_services
+```
+
+These tests cover:
+- device registration
+- duplicate device rejection
+- telemetry logging for registered devices
+- telemetry history filtering
+- text report generation with CrUX-formatted output
+
 ## Notes for submission
 
 - SentinelLog uses one final external integration path: CrUX.
