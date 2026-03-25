@@ -1,22 +1,23 @@
 from database.db_connection import configure_logging, get_connection
 from cli.telemetry_cli import TelemetryCLI
-from models.device import Device
+from repositories.device_repository import DeviceRepository
 from repositories.telemetry_repository import TelemetryRepository
+from services.device_service import DeviceService
 from services.report_service import ReportService
-from services.weather_service import WeatherService
 from services.telemetry_service import TelemetryService
 
 def main():
     configure_logging()
     conn = get_connection()
-    Device.create_table(conn)
-    repo = TelemetryRepository(conn)
-    repo.create_table()
+    device_repository = DeviceRepository(conn)
+    telemetry_repository = TelemetryRepository(conn)
+    device_repository.create_table()
+    telemetry_repository.create_table()
 
-    weather_service = WeatherService()
-    telemetry_service = TelemetryService(repo, weather_service, Device)
+    device_service = DeviceService(device_repository)
+    telemetry_service = TelemetryService(telemetry_repository, device_repository)
     report_service = ReportService(telemetry_service)
-    telemetry_cli = TelemetryCLI(telemetry_service)
+    telemetry_cli = TelemetryCLI(device_service, telemetry_service, report_service)
 
     while True:
         print("\nSentinelLog CLI")
@@ -31,52 +32,10 @@ def main():
             telemetry_cli.prompt_device_registration()
 
         elif choice == "2":
-            device_id = input("Device ID: ").strip()
-            metric_type = input("Metric type: ").strip()
-            timestamp = input(
-                "Timestamp (optional, ISO format like 2026-03-25 14:30:00): "
-            ).strip()
-
-            try:
-                metric_value = float(input("Metric value: ").strip())
-            except ValueError:
-                print("Metric value must be a number.")
-                continue
-
-            try:
-                telemetry_service.log_telemetry(
-                    device_id,
-                    metric_type,
-                    metric_value,
-                    timestamp=timestamp or None,
-                )
-            except ValueError as exc:
-                print(exc)
-                continue
-
-            print("Telemetry saved.")
+            telemetry_cli.prompt_telemetry_logging()
 
         elif choice == "3":
-            report_device_id = input("Filter by Device ID (optional): ").strip() or None
-            start_date = input(
-                "Start date (optional, ISO format like 2026-03-25 00:00:00): "
-            ).strip() or None
-            end_date = input(
-                "End date (optional, ISO format like 2026-03-25 23:59:59): "
-            ).strip() or None
-
-            try:
-                report = report_service.generate_text_report(
-                    device_id=report_device_id,
-                    start_date=start_date,
-                    end_date=end_date,
-                )
-            except ValueError as exc:
-                print(exc)
-                continue
-
-            print()
-            print(report)
+            telemetry_cli.prompt_report()
 
         elif choice == "4":
             print("Exiting SentinelLog.")

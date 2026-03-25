@@ -2,25 +2,12 @@ from datetime import datetime
 
 
 class TelemetryService:
-    def __init__(self, telemetry_repository, weather_service, device_model):
+    def __init__(self, telemetry_repository, device_repository):
         self.telemetry_repository = telemetry_repository
-        self.weather_service = weather_service
-        self.device_model = device_model
-
-    def register_device(self, device_id, name, device_type, location):
-        conn = self.telemetry_repository.conn
-        existing_device = self.device_model.get_by_device_id(conn, device_id)
-        if existing_device is not None:
-            raise ValueError(f"Device '{device_id}' is already registered.")
-
-        device = self.device_model(device_id, name, device_type, location)
-        device.create(conn)
-        return device
+        self.device_repository = device_repository
 
     def log_telemetry(self, device_id, metric_type, metric_value, timestamp=None):
-        device = self.device_model.get_by_device_id(
-            self.telemetry_repository.conn, device_id
-        )
+        device = self.device_repository.get_by_device_id(device_id)
         if device is None:
             raise ValueError(f"Device '{device_id}' is not registered.")
         parsed_timestamp = self._parse_timestamp(timestamp) if timestamp else None
@@ -30,9 +17,7 @@ class TelemetryService:
 
     def get_telemetry_data(self, device_id=None, start_date=None, end_date=None):
         if device_id:
-            device = self.device_model.get_by_device_id(
-                self.telemetry_repository.conn, device_id
-            )
+            device = self.device_repository.get_by_device_id(device_id)
             if device is None:
                 raise ValueError(f"Device '{device_id}' is not registered.")
 
@@ -44,19 +29,6 @@ class TelemetryService:
             end_date=parsed_end,
         )
         return telemetry_rows
-
-    def generate_report(self, device_id=None, start_date=None, end_date=None):
-        telemetry_rows = self.get_telemetry_data(
-            device_id=device_id,
-            start_date=start_date,
-            end_date=end_date,
-        )
-        weather = self.weather_service.get_weather()
-
-        return {
-            "telemetry": telemetry_rows,
-            "weather": weather,
-        }
 
     def _parse_timestamp(self, value):
         if isinstance(value, datetime):

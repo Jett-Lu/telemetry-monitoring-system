@@ -1,6 +1,8 @@
 class TelemetryCLI:
-    def __init__(self, telemetry_service):
+    def __init__(self, device_service, telemetry_service, report_service):
+        self.device_service = device_service
         self.telemetry_service = telemetry_service
+        self.report_service = report_service
 
     def prompt_device_registration(self):
         device_id = input("Device ID: ").strip()
@@ -16,7 +18,7 @@ class TelemetryCLI:
             return
 
         try:
-            self.telemetry_service.register_device(
+            self.device_service.register_device(
                 device_id=device_id,
                 name=name,
                 device_type=device_type,
@@ -27,6 +29,54 @@ class TelemetryCLI:
             return
 
         print("Device registered.")
+
+    def prompt_telemetry_logging(self):
+        device_id = input("Device ID: ").strip()
+        metric_type = input("Metric type: ").strip()
+        timestamp = input(
+            "Timestamp (optional, ISO format like 2026-03-25 14:30:00): "
+        ).strip()
+
+        try:
+            metric_value = float(input("Metric value: ").strip())
+        except ValueError:
+            print("Metric value must be a number.")
+            return
+
+        try:
+            self.telemetry_service.log_telemetry(
+                device_id,
+                metric_type,
+                metric_value,
+                timestamp=timestamp or None,
+            )
+        except ValueError as exc:
+            print(exc)
+            return
+
+        print("Telemetry saved.")
+
+    def prompt_report(self):
+        report_device_id = input("Filter by Device ID (optional): ").strip() or None
+        start_date = input(
+            "Start date (optional, ISO format like 2026-03-25 00:00:00): "
+        ).strip() or None
+        end_date = input(
+            "End date (optional, ISO format like 2026-03-25 23:59:59): "
+        ).strip() or None
+
+        try:
+            report = self.report_service.generate_text_report(
+                device_id=report_device_id,
+                start_date=start_date,
+                end_date=end_date,
+            )
+        except ValueError as exc:
+            print(exc)
+            return
+
+        print()
+        print(report)
 
     def _validate_device_fields(self, device_id, name, device_type, location):
         if not device_id:
