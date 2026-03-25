@@ -2,6 +2,7 @@ from database.db_connection import get_connection
 from cli.telemetry_cli import TelemetryCLI
 from models.device import Device
 from repositories.telemetry_repository import TelemetryRepository
+from services.report_service import ReportService
 from services.weather_service import WeatherService
 from services.telemetry_service import TelemetryService
 
@@ -13,6 +14,7 @@ def main():
 
     weather_service = WeatherService()
     telemetry_service = TelemetryService(repo, weather_service, Device)
+    report_service = ReportService(telemetry_service)
     telemetry_cli = TelemetryCLI(telemetry_service)
 
     while True:
@@ -63,7 +65,7 @@ def main():
             ).strip() or None
 
             try:
-                report = telemetry_service.generate_report(
+                report = report_service.generate_text_report(
                     device_id=report_device_id,
                     start_date=start_date,
                     end_date=end_date,
@@ -72,12 +74,8 @@ def main():
                 print(exc)
                 continue
 
-            print("\nTelemetry Records:")
-            for row in report["telemetry"]:
-                print(row)
-
-            print("\nWeather Context:")
-            print(report["weather"])
+            print()
+            print(report)
 
         elif choice == "4":
             print("Exiting SentinelLog.")

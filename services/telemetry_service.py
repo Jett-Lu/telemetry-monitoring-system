@@ -28,7 +28,7 @@ class TelemetryService:
             device_id, metric_type, metric_value, parsed_timestamp
         )
 
-    def generate_report(self, device_id=None, start_date=None, end_date=None):
+    def get_telemetry_data(self, device_id=None, start_date=None, end_date=None):
         if device_id:
             device = self.device_model.get_by_device_id(
                 self.telemetry_repository.conn, device_id
@@ -42,6 +42,14 @@ class TelemetryService:
             device_id=device_id,
             start_date=parsed_start,
             end_date=parsed_end,
+        )
+        return telemetry_rows
+
+    def generate_report(self, device_id=None, start_date=None, end_date=None):
+        telemetry_rows = self.get_telemetry_data(
+            device_id=device_id,
+            start_date=start_date,
+            end_date=end_date,
         )
         weather = self.weather_service.get_weather()
 
