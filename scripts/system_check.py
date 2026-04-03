@@ -2,6 +2,7 @@ import logging
 import os
 
 from api.crux_client import CrUXClient
+from api.uptime_client import UptimeRobotClient
 from config.environment import load_and_validate_environment
 from database.db_connection import LOG_FILE_PATH, configure_logging, get_connection
 from repositories.device_repository import DeviceRepository
@@ -27,7 +28,7 @@ def run_check(name, check_fn):
 
 def check_environment_variables():
     load_and_validate_environment()
-    return "DATABASE_URL and CRUX_API_KEY are loaded."
+    return "DATABASE_URL, CRUX_API_KEY, and UPTIMEROBOT_API_KEY are loaded."
 
 
 def check_database_connection():
@@ -106,6 +107,20 @@ def check_crux_connectivity():
     )
 
 
+def check_uptime_connectivity():
+    client = UptimeRobotClient()
+    data = client.get_monitor_status()
+    if data.get("error"):
+        raise RuntimeError(data.get("message", "UptimeRobot returned an error payload."))
+
+    return (
+        "Connected to UptimeRobot. "
+        f"Status={data.get('status')}, "
+        f"Uptime={data.get('uptime_percentage')}%, "
+        f"ResponseTime={data.get('response_time')} ms."
+    )
+
+
 def check_logging_initialization():
     configure_logging()
     logger = logging.getLogger("sentinel.system_check")
@@ -143,7 +158,7 @@ def main():
     except RuntimeError as exc:
         print_result("Startup configuration", False, str(exc))
         print()
-        print("System check completed: 0/7 checks passed.")
+        print("System check completed: 0/8 checks passed.")
         raise SystemExit(1)
 
     checks = [
@@ -152,6 +167,7 @@ def main():
         ("Devices table exists", check_devices_table),
         ("Telemetry table exists", check_telemetry_table),
         ("Chrome UX Report API connectivity", check_crux_connectivity),
+        ("UptimeRobot API connectivity", check_uptime_connectivity),
         ("Logging system initialization", check_logging_initialization),
         ("Report generation pipeline", check_report_pipeline),
     ]

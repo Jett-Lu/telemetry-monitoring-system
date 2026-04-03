@@ -144,3 +144,18 @@ class DeviceRepository:
             raise
         finally:
             cur.close()
+
+    def delete_all(self):
+        cur = self.conn.cursor()
+        try:
+            cur.execute("DELETE FROM devices")
+            deleted = cur.rowcount
+            self.conn.commit()
+            logger.info("Deleted all devices count=%s", deleted)
+            return deleted
+        except Exception:
+            self.conn.rollback()
+            logger.exception("Failed to delete all devices.")
+            raise
+        finally:
+            cur.close()

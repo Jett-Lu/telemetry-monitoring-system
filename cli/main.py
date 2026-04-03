@@ -3,6 +3,7 @@ from cli.telemetry_cli import TelemetryCLI
 from config.environment import load_and_validate_environment
 from repositories.device_repository import DeviceRepository
 from repositories.telemetry_repository import TelemetryRepository
+from services.database_reset_service import DatabaseResetService
 from services.device_service import DeviceService
 from services.report_service import ReportService
 from services.telemetry_service import TelemetryService
@@ -28,7 +29,16 @@ def main():
     device_service = DeviceService(device_repository)
     telemetry_service = TelemetryService(telemetry_repository, device_repository)
     report_service = ReportService(telemetry_service)
-    telemetry_cli = TelemetryCLI(device_service, telemetry_service, report_service)
+    database_reset_service = DatabaseResetService(
+        device_repository,
+        telemetry_repository,
+    )
+    telemetry_cli = TelemetryCLI(
+        device_service,
+        telemetry_service,
+        report_service,
+        database_reset_service,
+    )
 
     while True:
         print("\nSentinelLog CLI")
@@ -38,6 +48,7 @@ def main():
         print("4. Retrieve telemetry history")
         print("5. Generate report")
         print("6. Exit")
+        print("7. Clear all data")
 
         choice = input("> ").strip()
 
@@ -61,8 +72,11 @@ def main():
             conn.close()
             break
 
+        elif choice == "7":
+            telemetry_cli.prompt_clear_all_data()
+
         else:
-            print("Invalid option. Please choose 1, 2, 3, 4, 5, or 6.")
+            print("Invalid option. Please choose 1, 2, 3, 4, 5, 6, or 7.")
 
 if __name__ == "__main__":
     main()

@@ -72,6 +72,17 @@ class FakeCrUXClient:
         }
 
 
+class FakeUptimeService:
+    def get_uptime_status(self):
+        return {
+            "monitor_name": "McMaster Website",
+            "status": "Up",
+            "uptime_percentage": 99.98,
+            "response_time": 215.0,
+            "last_checked": "1712016000",
+        }
+
+
 class DeviceServiceTests(unittest.TestCase):
     def test_register_device_stores_device(self):
         repository = FakeDeviceRepository()
@@ -135,7 +146,11 @@ class ReportServiceTests(unittest.TestCase):
         telemetry_service = TelemetryService(telemetry_repository, device_repository)
         telemetry_service.log_telemetry("device-001", "cpu", 40.0, "2026-03-25 14:30:00")
         telemetry_service.log_telemetry("device-001", "cpu", 60.0, "2026-03-25 14:35:00")
-        report_service = ReportService(telemetry_service, crux_client=FakeCrUXClient())
+        report_service = ReportService(
+            telemetry_service,
+            crux_client=FakeCrUXClient(),
+            uptime_service=FakeUptimeService(),
+        )
 
         report = report_service.generate_text_report()
 
@@ -143,6 +158,8 @@ class ReportServiceTests(unittest.TestCase):
         self.assertIn("avg=50.00", report)
         self.assertIn("LCP: 2100 ms (good)", report)
         self.assertIn("TTFB: 700 ms (good)", report)
+        self.assertIn("Status: Up", report)
+        self.assertIn("Response Time: 215 ms", report)
 
 
 if __name__ == "__main__":

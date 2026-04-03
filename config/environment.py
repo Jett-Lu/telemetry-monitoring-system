@@ -6,6 +6,7 @@ ENV_FILE_PATH = os.path.join(PROJECT_ROOT, ".env")
 REQUIRED_ENV_VARS = [
     "DATABASE_URL",
     "CRUX_API_KEY",
+    "UPTIMEROBOT_API_KEY",
 ]
 DEFAULT_TRACKED_ORIGIN = "https://www.mcmaster.ca/"
 

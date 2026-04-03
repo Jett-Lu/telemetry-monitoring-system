@@ -1,8 +1,15 @@
 class TelemetryCLI:
-    def __init__(self, device_service, telemetry_service, report_service):
+    def __init__(
+        self,
+        device_service,
+        telemetry_service,
+        report_service,
+        database_reset_service,
+    ):
         self.device_service = device_service
         self.telemetry_service = telemetry_service
         self.report_service = report_service
+        self.database_reset_service = database_reset_service
 
     def prompt_device_registration(self):
         device_id = input("Device ID: ").strip()
@@ -121,6 +128,22 @@ class TelemetryCLI:
 
         print()
         print(report)
+
+    def prompt_clear_all_data(self):
+        confirmation = input(
+            "Are you sure you want to clear all data? (yes/no) "
+        ).strip().lower()
+
+        if confirmation != "yes":
+            print("Clear data cancelled.")
+            return
+
+        result = self.database_reset_service.clear_all_data()
+        print(
+            "All data cleared. "
+            f"Removed {result['telemetry_deleted']} telemetry records and "
+            f"{result['devices_deleted']} devices."
+        )
 
     def _validate_device_fields(self, device_id, name, device_type, location):
         if not device_id:

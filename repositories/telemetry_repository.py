@@ -155,3 +155,18 @@ class TelemetryRepository:
             start_date=start_date,
             end_date=end_date,
         )
+
+    def delete_all(self):
+        cur = self.conn.cursor()
+        try:
+            cur.execute("DELETE FROM telemetry")
+            deleted = cur.rowcount
+            self.conn.commit()
+            logger.info("Deleted all telemetry records count=%s", deleted)
+            return deleted
+        except Exception:
+            self.conn.rollback()
+            logger.exception("Failed to delete all telemetry records.")
+            raise
+        finally:
+            cur.close()
