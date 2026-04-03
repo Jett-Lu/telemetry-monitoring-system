@@ -18,33 +18,36 @@ The project uses a layered structure:
 
 ```text
 sentinel-log/
-├── api/
-│   ├── crux_adapter.py
-│   └── crux_client.py
-├── cli/
-│   ├── main.py
-│   └── telemetry_cli.py
-├── config/
-│   └── environment.py
-├── database/
-│   └── db_connection.py
-├── models/
-│   ├── device.py
-│   ├── device_factory.py
-│   ├── site_performance.py
-│   └── telemetry.py
-├── repositories/
-│   ├── device_repository.py
-│   └── telemetry_repository.py
-├── scripts/
-│   └── system_check.py
-├── services/
-│   ├── device_service.py
-│   ├── report_service.py
-│   ├── report_strategies.py
-│   └── telemetry_service.py
-├── requirements.txt
-└── README.md
+|-- api/
+|   |-- crux_adapter.py
+|   `-- crux_client.py
+|-- cli/
+|   |-- main.py
+|   `-- telemetry_cli.py
+|-- config/
+|   `-- environment.py
+|-- database/
+|   `-- db_connection.py
+|-- models/
+|   |-- device.py
+|   |-- device_factory.py
+|   |-- site_performance.py
+|   `-- telemetry.py
+|-- repositories/
+|   |-- device_repository.py
+|   `-- telemetry_repository.py
+|-- scripts/
+|   `-- system_check.py
+|-- services/
+|   |-- device_service.py
+|   |-- report_service.py
+|   |-- report_strategies.py
+|   `-- telemetry_service.py
+|-- tests/
+|   `-- test_services.py
+|-- .env.example
+|-- requirements.txt
+`-- README.md
 ```
 
 ## Design patterns used
@@ -52,7 +55,7 @@ sentinel-log/
 - Factory Method:
   `models/device_factory.py` creates `Device` objects for the service layer.
 - Strategy:
-  `services/report_strategies.py` defines the report formatting strategy, with `PlainTextReportStrategy` used by default.
+  `services/report_strategies.py` defines report formatting behavior, with `PlainTextReportStrategy` used by default.
 - Adapter:
   `api/crux_adapter.py` converts raw CrUX API responses into the internal site performance model used by reporting.
 
