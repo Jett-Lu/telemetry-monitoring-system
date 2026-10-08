@@ -1,10 +1,10 @@
-# SentinelLog
+# Telemetry Monitoring System
 
-SentinelLog is a CLI-based telemetry logging and reporting system for SFWRTECH 4SA3. It uses PostgreSQL for persistence, Chrome UX Report (CrUX) for public web performance metrics, and UptimeRobot for public uptime status for `https://www.mcmaster.ca/`.
+A Python command-line telemetry monitoring and reporting system developed for SFWRTECH 4SA3. It stores device and metric records in PostgreSQL and enriches reports with Chrome UX Report (CrUX) performance metrics and UptimeRobot uptime data for `https://www.mcmaster.ca/`.
 
 ## Final project scope
 
-SentinelLog supports:
+The system supports:
 - device registration with `device_id`, `name`, `type`, and `location`
 - telemetry logging with `device_id`, `metric_type`, `metric_value`, and `timestamp`
 - PostgreSQL storage for device and telemetry records
@@ -19,7 +19,7 @@ SentinelLog supports:
 The project follows a layered structure:
 
 ```text
-sentinel-log/
+telemetry-monitoring-system/
 |-- api/
 |   |-- crux_adapter.py
 |   |-- crux_client.py
@@ -100,7 +100,7 @@ Optional variable:
 - `TRACKED_ORIGIN`
   Default: `https://www.mcmaster.ca/`
 
-If a required variable is missing, SentinelLog prints a clear startup configuration error and exits immediately.
+If a required variable is missing, the application prints a clear startup configuration error and exits immediately.
 
 You can start from `.env.example` and fill in the real values.
 
@@ -209,6 +209,6 @@ These tests cover:
 
 ## Notes for submission
 
-- SentinelLog uses CrUX and UptimeRobot as the final external integrations.
+- The system uses CrUX and UptimeRobot as its final external integrations.
 - Older weather-based integration code has been removed to keep the final prototype coherent.
 - The repository is structured so CLI, service logic, persistence, configuration, models, and external integrations are clearly separated.
